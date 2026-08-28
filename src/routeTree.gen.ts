@@ -10,43 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PlayRankRouteImport } from './routes/play.$rank'
+import { Route as MazeRankIndexRouteImport } from './routes/maze-rank/index'
+import { Route as MazeRankLiveRankRouteImport } from './routes/maze-rank/live.$rank'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PlayRankRoute = PlayRankRouteImport.update({
-  id: '/play/$rank',
-  path: '/play/$rank',
+const MazeRankIndexRoute = MazeRankIndexRouteImport.update({
+  id: '/maze-rank/',
+  path: '/maze-rank/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MazeRankLiveRankRoute = MazeRankLiveRankRouteImport.update({
+  id: '/maze-rank/live/$rank',
+  path: '/maze-rank/live/$rank',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/play/$rank': typeof PlayRankRoute
+  '/maze-rank/': typeof MazeRankIndexRoute
+  '/maze-rank/live/$rank': typeof MazeRankLiveRankRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/play/$rank': typeof PlayRankRoute
+  '/maze-rank': typeof MazeRankIndexRoute
+  '/maze-rank/live/$rank': typeof MazeRankLiveRankRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/play/$rank': typeof PlayRankRoute
+  '/maze-rank/': typeof MazeRankIndexRoute
+  '/maze-rank/live/$rank': typeof MazeRankLiveRankRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/play/$rank'
+  fullPaths: '/' | '/maze-rank/' | '/maze-rank/live/$rank'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/play/$rank'
-  id: '__root__' | '/' | '/play/$rank'
+  to: '/' | '/maze-rank' | '/maze-rank/live/$rank'
+  id: '__root__' | '/' | '/maze-rank/' | '/maze-rank/live/$rank'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PlayRankRoute: typeof PlayRankRoute
+  MazeRankIndexRoute: typeof MazeRankIndexRoute
+  MazeRankLiveRankRoute: typeof MazeRankLiveRankRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -58,11 +68,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/play/$rank': {
-      id: '/play/$rank'
-      path: '/play/$rank'
-      fullPath: '/play/$rank'
-      preLoaderRoute: typeof PlayRankRouteImport
+    '/maze-rank/': {
+      id: '/maze-rank/'
+      path: '/maze-rank'
+      fullPath: '/maze-rank/'
+      preLoaderRoute: typeof MazeRankIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maze-rank/live/$rank': {
+      id: '/maze-rank/live/$rank'
+      path: '/maze-rank/live/$rank'
+      fullPath: '/maze-rank/live/$rank'
+      preLoaderRoute: typeof MazeRankLiveRankRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -70,7 +87,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PlayRankRoute: PlayRankRoute,
+  MazeRankIndexRoute: MazeRankIndexRoute,
+  MazeRankLiveRankRoute: MazeRankLiveRankRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

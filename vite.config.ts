@@ -17,4 +17,7 @@ export default defineConfig(({ command }) => ({
     tsConfigPaths(),
     command === "build" ? nitro() : undefined,
   ].filter(Boolean),
+  test: {
+    globals: true,
+  },
 }));

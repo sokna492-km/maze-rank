@@ -1,59 +1,62 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { fmt, leaderboard, type Entry } from "@/lib/leaderboard";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
 
-export function Leaderboard() {
+const PODIUM: Record<number, string> = {
+  0: "text-[#fbbf24]",
+  1: "text-slate-300",
+  2: "text-[#fb923c]",
+};
+
+export function Leaderboard({ className, dense }: { className?: string; dense?: boolean }) {
   const [rows, setRows] = useState<Entry[]>([]);
-  const ref = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ y: number; top: number } | null>(null);
 
   useEffect(() => setRows(leaderboard()), []);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const you = el.querySelector<HTMLElement>("[data-you='true']");
-    if (you) el.scrollTop = you.offsetTop - el.clientHeight / 2 + you.clientHeight / 2;
-  }, [rows]);
-
-  const onPointerDown = (e: React.PointerEvent) => {
-    const el = ref.current;
-    if (!el) return;
-    drag.current = { y: e.clientY, top: el.scrollTop };
-    el.setPointerCapture(e.pointerId);
-  };
-  const onPointerMove = (e: React.PointerEvent) => {
-    const el = ref.current;
-    if (!el || !drag.current) return;
-    el.scrollTop = drag.current.top - (e.clientY - drag.current.y);
-  };
-  const endDrag = () => {
-    drag.current = null;
-  };
-
   return (
-    <div
-      ref={ref}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={endDrag}
-      onPointerCancel={endDrag}
-      className="fade-mask no-bar h-full cursor-grab overflow-y-auto overscroll-contain py-[45%] select-none active:cursor-grabbing"
-    >
-      <ul className="float-soft space-y-6">
-        {rows.map((r, i) => (
-          <li
-            key={r.name + i}
-            data-you={r.you ? "true" : undefined}
-            className={`flex items-baseline gap-3 text-[0.7rem] tracking-[0.18em] tabular-nums ${
-              r.you ? "text-accent" : "text-foreground/55"
-            }`}
-          >
-            <span className="w-5 shrink-0 text-right opacity-50">{i + 1}</span>
-            <span className="min-w-0 flex-1 truncate uppercase">{r.name}</span>
-            <span className="shrink-0 opacity-70">{fmt(r.seconds)}</span>
-          </li>
-        ))}
+    <ScrollArea className={cn("min-h-0 flex-1", className)}>
+      <ul className={cn("pr-2", dense && "px-1")}>
+        {rows.map((r, i) => {
+          const podium = PODIUM[i];
+          return (
+            <li
+              key={r.name + i}
+              data-you={r.you ? "true" : undefined}
+              className={cn(
+                "grid grid-cols-[1.25rem_1fr_2.75rem] items-baseline gap-x-1 border-b border-white/[0.04] py-2 tabular-nums last:border-0",
+                dense ? "text-xs" : "text-[11px]",
+                dense && "py-2.5",
+                r.you && "rounded-md bg-[#63b3ed]/10 px-1",
+              )}
+            >
+              <span
+                className={cn(
+                  "text-right font-medium",
+                  r.you ? "text-[#63b3ed]" : (podium ?? "text-white/45"),
+                )}
+              >
+                {i + 1}
+              </span>
+              <span
+                className={cn(
+                  "min-w-0 truncate",
+                  r.you
+                    ? "font-semibold text-[#63b3ed]"
+                    : podium
+                      ? `font-semibold ${podium}`
+                      : "text-white/80",
+                )}
+              >
+                {r.name}
+              </span>
+              <span className={cn("text-right", r.you ? "text-[#63b3ed]/75" : "text-white/45")}>
+                {fmt(r.seconds)}
+              </span>
+            </li>
+          );
+        })}
       </ul>
-    </div>
+    </ScrollArea>
   );
 }
