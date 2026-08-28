@@ -16,9 +16,28 @@ dist-ssr
 .nitro
 *.local
 
+# Environment & secrets
+.env
+.env.*
+!.env.example
+!.env*.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+*-credentials.json
+service-account*.json
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
+.dev.vars.*
+!.dev.vars.example
+
+# Local IDE / agent (debug logs, MCP config)
+.cursor/
 
 # Editor directories and files
 .vscode/*
