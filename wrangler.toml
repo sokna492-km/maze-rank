@@ -1,0 +1,11 @@
+# Name used by `npx nitro deploy`. Paths/main are generated in .output after `npm run build`.
+# Set your Cloudflare account via `wrangler login` or the CLOUDFLARE_ACCOUNT_ID env var.
+name = "maze-rank"
+compatibility_date = "2026-08-27"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# Hostname route (more specific than the main krumath Worker).
+[[routes]]
+pattern = "krumath.com/maze-rank*"
+zone_name = "krumath.com"

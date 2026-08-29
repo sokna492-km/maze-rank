@@ -7,6 +7,7 @@ import { defineConfig } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(({ command }) => ({
+  base: "/maze-rank/",
   plugins: [
     command === "serve" ? devtools() : undefined,
     tanstackStart({
@@ -15,7 +16,12 @@ export default defineConfig(({ command }) => ({
     viteReact(),
     tailwindcss(),
     tsConfigPaths(),
-    command === "build" ? nitro() : undefined,
+    command === "build"
+      ? nitro({
+          preset: "cloudflare-module",
+          baseURL: "/maze-rank/",
+        })
+      : undefined,
   ].filter(Boolean),
   test: {
     globals: true,

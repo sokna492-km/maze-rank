@@ -32,28 +32,34 @@ npm install
 npm run dev
 ```
 
-Open the URL printed in the terminal (typically `http://localhost:5173`).
+Open the URL printed in the terminal (typically `http://localhost:5173/maze-rank/`). Copy `.env.example` to `.env` if you need production-like Supabase values; the auth gate is skipped in development.
+
+## KruMath.com
+
+Mounted at **https://krumath.com/maze-rank**. See [docs/integration.md](docs/integration.md) for Cloudflare deploy, auth gate, and the maintainer home-link checklist.
 
 ## Scripts
 
-| Command           | Description                    |
-| ----------------- | ------------------------------ |
-| `npm run dev`     | Start the development server   |
-| `npm run build`   | Production build               |
-| `npm run preview` | Preview the production build   |
-| `npm run lint`    | Run ESLint                     |
-| `npm run format`  | Format code with Prettier      |
+| Command           | Description                              |
+| ----------------- | ---------------------------------------- |
+| `npm run dev`     | Start the development server             |
+| `npm run build`   | Production build (Cloudflare Worker)     |
+| `npm run deploy`  | Build and deploy with Nitro to Cloudflare |
+| `npm run preview` | Preview the production build             |
+| `npm run lint`    | Run ESLint                               |
+| `npm run format`  | Format code with Prettier                |
+| `npm run test`    | Run Vitest                               |
 
 ## Project structure
 
 ```
 src/
-├── routes/          # File-based routes (pages)
+├── routes/          # File-based routes (in-app paths; Vite base mounts /maze-rank/)
 │   ├── __root.tsx   # Root layout and error boundaries
-│   ├── index.tsx    # Level selection / landing page
-│   └── play.$rank.tsx  # Gameplay screen
+│   ├── index.tsx    # Level selection
+│   └── live.$rank.tsx  # Gameplay screen
 ├── components/      # Shared UI components
-├── lib/             # Game logic, maze generation, progress
+├── lib/             # Game logic, maze generation, KruMath auth helpers
 ├── server.ts        # SSR entry with error handling
 └── styles.css       # Global styles and Tailwind imports
 ```
@@ -72,13 +78,12 @@ src/
 
 ## Deployment
 
-Build the app for production:
-
 ```sh
-npm run build
+# Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY at build time
+npm run deploy
 ```
 
-The output is suitable for deployment on any platform that supports Node.js or static hosting with SSR (e.g. Cloudflare Workers via Nitro).
+Then add Cloudflare route `krumath.com/maze-rank*` → Worker `maze-rank`. Details: [docs/integration.md](docs/integration.md).
 
 ## License
 

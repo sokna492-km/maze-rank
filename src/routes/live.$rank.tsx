@@ -29,19 +29,28 @@ import {
   type MoveDir,
 } from "@/lib/quiz-triggers";
 import { MAZE_RANK_HOME, MAZE_RANK_PLAY_ROUTE } from "@/lib/rank-path";
+import { requirePlayableUser } from "@/lib/requirePlayableUser";
 import { RankBadge } from "@/components/rank-icons/RankBadge";
 import { QuizModal } from "@/components/QuizModal";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useShortViewport } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import type { Quiz } from "@/lib/math-quiz";
 
-export const Route = createFileRoute("/maze-rank/live/$rank")({
+export const Route = createFileRoute("/live/$rank")({
+  beforeLoad: async ({ location }) => {
+    await requirePlayableUser(location.pathname);
+  },
   head: ({ params }) => {
     const idx = rankIndexFromSlug(params.rank);
     const name = idx >= 0 ? RANKS[idx]! : "Maze";
     return {
       meta: [
         { title: `${name} — Neon Maze` },
-        { name: "description", content: `Solve the ${name} neon labyrinth and unlock the next rank.` },
+        {
+          name: "description",
+          content: `Solve the ${name} neon labyrinth and unlock the next rank.`,
+        },
         { property: "og:title", content: `${name} — Neon Maze` },
         { property: "og:description", content: `Solve the ${name} neon labyrinth.` },
       ],
@@ -55,6 +64,7 @@ type Dir = MoveDir;
 function Play() {
   const { rank } = Route.useParams();
   const navigate = useNavigate();
+  const shortViewport = useShortViewport();
   const slugIndex = rankIndexFromSlug(rank);
   const level = Math.max(0, slugIndex);
   const name = RANKS[level]!;
@@ -63,10 +73,7 @@ function Play() {
   const [attempt, setAttempt] = useState(0);
   const { cols, rows } = useMemo(() => sizeForLevel(level), [level]);
   const mazeSeed = (level + 1) * 7919 + attempt * 104729;
-  const maze = useMemo(
-    () => generateMaze(cols, rows, mazeSeed),
-    [cols, rows, mazeSeed],
-  );
+  const maze = useMemo(() => generateMaze(cols, rows, mazeSeed), [cols, rows, mazeSeed]);
 
   const start = (rows - 1) * cols + Math.floor(cols / 2);
   const goal = Math.floor(cols / 2);
@@ -179,12 +186,7 @@ function Play() {
         posRef.current = next;
         const drawSlot = quizDrawRef.current;
         quizDrawRef.current += 1;
-        const quiz = generateUniqueQuiz(
-          mazeSeed,
-          level,
-          drawSlot,
-          usedQuizPromptsRef.current,
-        );
+        const quiz = generateUniqueQuiz(mazeSeed, level, drawSlot, usedQuizPromptsRef.current);
         addSeenQuizPrompt(quizPromptKey(quiz));
         const nextUsed = new Set(usedQuizPromptsRef.current).add(quizPromptKey(quiz));
         usedQuizPromptsRef.current = nextUsed;
@@ -280,6 +282,48 @@ function Play() {
   const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
   const ss = String(seconds % 60).padStart(2, "0");
 
+  const dPad = (
+    <div
+      className={cn(
+        "grid grid-cols-3 grid-rows-3",
+        shortViewport ? "w-[min(28vw,8rem)] gap-1" : "mx-auto w-[min(42vw,11rem)] gap-1.5",
+      )}
+    >
+      <Pad
+        className="col-start-2 row-start-1"
+        onPress={() => move("n")}
+        label="Up"
+        compact={shortViewport}
+      >
+        <ChevronUp className={shortViewport ? "h-5 w-5" : "h-6 w-6"} />
+      </Pad>
+      <Pad
+        className="col-start-1 row-start-2"
+        onPress={() => move("w")}
+        label="Left"
+        compact={shortViewport}
+      >
+        <ChevronLeft className={shortViewport ? "h-5 w-5" : "h-6 w-6"} />
+      </Pad>
+      <Pad
+        className="col-start-3 row-start-2"
+        onPress={() => move("e")}
+        label="Right"
+        compact={shortViewport}
+      >
+        <ChevronRight className={shortViewport ? "h-5 w-5" : "h-6 w-6"} />
+      </Pad>
+      <Pad
+        className="col-start-2 row-start-3"
+        onPress={() => move("s")}
+        label="Down"
+        compact={shortViewport}
+      >
+        <ChevronDown className={shortViewport ? "h-5 w-5" : "h-6 w-6"} />
+      </Pad>
+    </div>
+  );
+
   return (
     <div
       className="no-scroll-screen fixed inset-0 flex flex-col select-none tracking-normal"
@@ -291,158 +335,155 @@ function Play() {
         <Link
           to={MAZE_RANK_HOME}
           aria-label="Back"
-          className="grid h-11 w-11 place-items-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:text-primary active:scale-95"
+          className="grid h-11 w-11 place-items-center rounded-full border border-border/60 text-foreground transition-colors hover:text-primary active:scale-95"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="min-w-0 text-center">
-          <div
-            className="truncate text-sm sm:text-base"
-            style={{ color }}
-          >
+          <div className="truncate text-base font-semibold text-foreground sm:text-lg">
             {name}
           </div>
-          <div className="text-xs text-muted-foreground tabular-nums sm:text-sm md:hidden">
+          <div className="text-sm text-foreground tabular-nums sm:text-base lg:hidden">
             {mm}:{ss}
           </div>
         </div>
-        <button
-          onClick={() => setAttempt((a) => a + 1)}
-          disabled={quizActive}
-          aria-label="Restart"
-          className="grid h-11 w-11 place-items-center rounded-full border border-border/60 text-muted-foreground transition-colors hover:text-primary active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <RotateCcw className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle
+            className="h-11 w-11 border-border/60 text-foreground hover:text-primary"
+            iconClassName="h-5 w-5"
+          />
+          <button
+            onClick={() => setAttempt((a) => a + 1)}
+            disabled={quizActive}
+            aria-label="Restart"
+            className="grid h-11 w-11 place-items-center rounded-full border border-border/60 text-foreground transition-colors hover:text-primary active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <RotateCcw className="h-5 w-5" />
+          </button>
+        </div>
       </header>
 
-      {/* Maze */}
-      <div className="relative mx-auto min-h-0 w-full max-w-3xl flex-1 px-2 pb-1">
-        <svg
-          viewBox={`-0.6 -0.6 ${cols + 1.2} ${rows + 1.2}`}
-          preserveAspectRatio="xMidYMid meet"
-          className="h-full w-full"
-        >
-          <g style={{ color: "var(--maze-line)" }}>
+      <div
+        className={cn(
+          "relative flex min-h-0 flex-1",
+          shortViewport ? "flex-row items-stretch" : "flex-col",
+        )}
+      >
+        {/* Maze */}
+        <div className="relative mx-auto min-h-0 min-w-0 w-full max-w-3xl flex-1 px-2 pb-1">
+          <svg
+            viewBox={`-0.6 -0.6 ${cols + 1.2} ${rows + 1.2}`}
+            preserveAspectRatio="xMidYMid meet"
+            className="h-full w-full"
+          >
+            <g style={{ color: "var(--maze-line)" }}>
+              <path
+                d={wallPath}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="0.16"
+                strokeLinecap="round"
+                opacity="0.35"
+                style={{ filter: "blur(0.14px)" }}
+              />
+              <path
+                d={wallPath}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="0.075"
+                strokeLinecap="round"
+              />
+            </g>
+
             <path
-              d={wallPath}
+              d={trailPath}
               fill="none"
-              stroke="currentColor"
-              strokeWidth="0.16"
+              stroke="var(--maze-trail)"
+              strokeWidth="0.14"
+              strokeLinejoin="round"
               strokeLinecap="round"
-              opacity="0.35"
-              style={{ filter: "blur(0.14px)" }}
+              opacity="0.75"
+              className={won ? "trail-flash" : undefined}
             />
-            <path
-              d={wallPath}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="0.075"
-              strokeLinecap="round"
-            />
-          </g>
 
-          <path
-            d={trailPath}
-            fill="none"
-            stroke="var(--maze-trail)"
-            strokeWidth="0.14"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            opacity="0.75"
-            className={won ? "trail-flash" : undefined}
-          />
+            <GoalMarker x={goalX} y={goalY} won={won} />
 
-          <GoalMarker x={goalX} y={goalY} won={won} />
+            {won &&
+              [0, 1, 2].map((i) => (
+                <g key={i} transform={`translate(${goalX} ${goalY})`}>
+                  <circle
+                    r="0.28"
+                    fill="none"
+                    stroke="var(--goal)"
+                    strokeWidth="0.1"
+                    className="goal-burst-ring"
+                    style={{ animationDelay: `${i * 110}ms`, color: "var(--goal)" }}
+                  />
+                </g>
+              ))}
 
-          {won &&
-            [0, 1, 2].map((i) => (
-              <g key={i} transform={`translate(${goalX} ${goalY})`}>
-                <circle
-                  r="0.28"
-                  fill="none"
-                  stroke="var(--goal)"
-                  strokeWidth="0.1"
-                  className="goal-burst-ring"
-                  style={{ animationDelay: `${i * 110}ms`, color: "var(--goal)" }}
-                />
-              </g>
-            ))}
-
-          {!won && (
+            {!won && (
+              <circle
+                cx={cx(pos)}
+                cy={cy(pos)}
+                r="0.34"
+                fill="none"
+                stroke="var(--player)"
+                strokeWidth="0.035"
+                opacity="0.28"
+                className="goal-idle"
+                style={{ transition: "cx 90ms linear, cy 90ms linear" }}
+              />
+            )}
             <circle
               cx={cx(pos)}
               cy={cy(pos)}
-              r="0.34"
-              fill="none"
-              stroke="var(--player)"
-              strokeWidth="0.035"
-              opacity="0.28"
-              className="goal-idle"
-              style={{ transition: "cx 90ms linear, cy 90ms linear" }}
+              r="0.22"
+              fill="var(--player)"
+              className={cn(!won && "pulse-glow", won && "player-capture")}
+              style={{
+                color: "var(--player)",
+                transition: won ? undefined : "cx 90ms linear, cy 90ms linear",
+              }}
+            />
+          </svg>
+
+          {showWinPanel && (
+            <WinPanel
+              level={level}
+              name={name}
+              color={color}
+              time={`${mm}:${ss}`}
+              nextRank={nextRank}
+              nextSlug={nextSlug}
+              onMap={() => navigate({ to: MAZE_RANK_HOME })}
+              onNext={() =>
+                nextSlug && navigate({ to: MAZE_RANK_PLAY_ROUTE, params: { rank: nextSlug } })
+              }
             />
           )}
-          <circle
-            cx={cx(pos)}
-            cy={cy(pos)}
-            r="0.22"
-            fill="var(--player)"
-            className={cn(!won && "pulse-glow", won && "player-capture")}
-            style={{
-              color: "var(--player)",
-              transition: won ? undefined : "cx 90ms linear, cy 90ms linear",
-            }}
-          />
-        </svg>
 
-        {showWinPanel && (
-          <WinPanel
-            level={level}
-            name={name}
-            color={color}
-            time={`${mm}:${ss}`}
-            nextRank={nextRank}
-            nextSlug={nextSlug}
-            onMap={() => navigate({ to: MAZE_RANK_HOME })}
-            onNext={() =>
-              nextSlug &&
-              navigate({ to: MAZE_RANK_PLAY_ROUTE, params: { rank: nextSlug } })
-            }
-          />
-        )}
+          {activeQuiz && <QuizModal quiz={activeQuiz} color={color} onAnswer={handleQuizAnswer} />}
+        </div>
 
-        {activeQuiz && (
-          <QuizModal quiz={activeQuiz} color={color} onAnswer={handleQuizAnswer} />
-        )}
-      </div>
-
-      {/* Timer — desktop */}
-      <div className="hidden shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-center md:block">
-        <div className="text-xs text-muted-foreground tabular-nums sm:text-sm">
-          {mm}:{ss}
+        {/* Touch pad — side (short) or bottom (portrait mobile/tablet) */}
+        <div
+          className={cn(
+            "shrink-0 lg:hidden",
+            shortViewport
+              ? "flex items-center pr-[max(0.75rem,env(safe-area-inset-right))] pl-1"
+              : "px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]",
+            (won || quizActive) && "pointer-events-none opacity-30",
+          )}
+        >
+          {dPad}
         </div>
       </div>
 
-      {/* Touch pad */}
-      <div
-        className={cn(
-          "shrink-0 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:hidden",
-          (won || quizActive) && "pointer-events-none opacity-30",
-        )}
-      >
-        <div className="mx-auto grid w-[min(42vw,11rem)] grid-cols-3 grid-rows-3 gap-1.5">
-          <Pad className="col-start-2 row-start-1" onPress={() => move("n")} label="Up">
-            <ChevronUp className="h-6 w-6" />
-          </Pad>
-          <Pad className="col-start-1 row-start-2" onPress={() => move("w")} label="Left">
-            <ChevronLeft className="h-6 w-6" />
-          </Pad>
-          <Pad className="col-start-3 row-start-2" onPress={() => move("e")} label="Right">
-            <ChevronRight className="h-6 w-6" />
-          </Pad>
-          <Pad className="col-start-2 row-start-3" onPress={() => move("s")} label="Down">
-            <ChevronDown className="h-6 w-6" />
-          </Pad>
+      {/* Timer — desktop */}
+      <div className="hidden shrink-0 pb-[max(0.75rem,env(safe-area-inset-bottom))] text-center lg:block">
+        <div className="text-sm text-foreground tabular-nums sm:text-base">
+          {mm}:{ss}
         </div>
       </div>
     </div>
@@ -512,13 +553,13 @@ function WinPanel({
       className="win-overlay-in absolute inset-0 grid place-items-center px-4"
       style={{
         background:
-          "radial-gradient(ellipse 80% 60% at 50% 40%, color-mix(in oklab, var(--goal) 18%, transparent), rgba(0,0,0,0.72))",
+          "radial-gradient(ellipse 80% 60% at 50% 40%, color-mix(in oklab, var(--goal) 18%, transparent), var(--overlay-scrim))",
       }}
     >
       <div
-        className="win-card-in relative w-full max-w-sm overflow-hidden rounded-3xl border border-white/10 bg-background/90 p-6 shadow-2xl backdrop-blur-xl"
+        className="win-card-in relative w-full max-w-sm max-h-[min(90dvh,36rem)] overflow-y-auto rounded-3xl border border-border bg-background/90 p-6 shadow-2xl backdrop-blur-xl"
         style={{
-          boxShadow: `0 0 60px color-mix(in oklab, ${color} 25%, transparent), 0 24px 48px rgba(0,0,0,0.45)`,
+          boxShadow: `0 0 60px color-mix(in oklab, ${color} 25%, transparent), 0 24px 48px color-mix(in oklab, var(--foreground) 12%, transparent)`,
         }}
       >
         <div
@@ -546,18 +587,18 @@ function WinPanel({
             />
           </div>
 
-          <h2 className="text-xl font-semibold sm:text-2xl" style={{ color }}>
+          <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
             {name}
           </h2>
 
-          <div className="mt-4 flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-2">
+          <div className="mt-4 flex items-center gap-2 rounded-full border border-border bg-muted/40 px-4 py-2">
             <Trophy className="h-4 w-4 text-[var(--goal)]" aria-hidden />
-            <span className="font-mono text-lg tabular-nums tracking-wide">{time}</span>
+            <span className="font-mono text-lg tabular-nums tracking-wide text-foreground">{time}</span>
           </div>
 
           {nextRank && (
-            <p className="mt-3 text-xs text-muted-foreground">
-              <span className="text-[var(--goal)]">{nextRank}</span> unlocked
+            <p className="mt-3 text-sm text-foreground">
+              <span className="font-semibold">{nextRank}</span> unlocked
             </p>
           )}
 
@@ -567,7 +608,7 @@ function WinPanel({
                 type="button"
                 lang="km"
                 onClick={onNext}
-                className="font-khmer flex-1 rounded-2xl px-4 py-3 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.98]"
+                className="font-khmer flex-1 rounded-2xl px-4 py-3 text-base font-semibold text-primary-foreground transition-transform active:scale-[0.98]"
                 style={{
                   background: `color-mix(in oklab, ${color} 88%, transparent)`,
                   boxShadow: `0 0 24px color-mix(in oklab, ${color} 35%, transparent)`,
@@ -581,7 +622,7 @@ function WinPanel({
               lang="km"
               onClick={onMap}
               className={cn(
-                "font-khmer rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-3 text-sm font-medium text-foreground/85 transition-colors hover:bg-white/[0.07] active:scale-[0.98]",
+                "font-khmer rounded-2xl border border-border bg-muted/40 px-4 py-3 text-base font-medium text-foreground transition-colors hover:bg-muted/70 active:scale-[0.98]",
                 nextSlug ? "flex-1" : "w-full",
               )}
             >
@@ -599,11 +640,13 @@ function Pad({
   children,
   className,
   label,
+  compact,
 }: {
   onPress: () => void;
   children: React.ReactNode;
   className?: string;
   label: string;
+  compact?: boolean;
 }) {
   return (
     <button
@@ -612,7 +655,11 @@ function Pad({
         e.preventDefault();
         onPress();
       }}
-      className={`grid h-14 w-14 place-items-center rounded-2xl border border-border/50 bg-card/40 text-primary/80 backdrop-blur-sm transition-transform active:scale-90 ${className ?? ""}`}
+      className={cn(
+        "grid place-items-center rounded-2xl border border-border/50 bg-card/40 text-foreground backdrop-blur-sm transition-transform active:scale-90",
+        compact ? "h-11 w-11" : "h-14 w-14",
+        className,
+      )}
     >
       {children}
     </button>

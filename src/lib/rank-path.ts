@@ -1,7 +1,7 @@
 import { RANKS, RANK_SLUGS } from "@/lib/maze";
 
-export const MAZE_RANK_HOME = "/maze-rank" as const;
-export const MAZE_RANK_PLAY_ROUTE = "/maze-rank/live/$rank" as const;
+export const MAZE_RANK_HOME = "/" as const;
+export const MAZE_RANK_PLAY_ROUTE = "/live/$rank" as const;
 
 export type RankNodeState = "done" | "current" | "locked";
 

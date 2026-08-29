@@ -4,59 +4,72 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 const PODIUM: Record<number, string> = {
-  0: "text-[#fbbf24]",
-  1: "text-slate-300",
-  2: "text-[#fb923c]",
+  0: "text-accent",
+  1: "text-muted-foreground",
+  2: "text-chart-5",
 };
 
-export function Leaderboard({ className, dense }: { className?: string; dense?: boolean }) {
+export function Leaderboard({
+  className,
+  dense,
+  /** Skip ScrollArea — parent provides overflow scrolling (e.g. drawer). */
+  embedded,
+}: {
+  className?: string;
+  dense?: boolean;
+  embedded?: boolean;
+}) {
   const [rows, setRows] = useState<Entry[]>([]);
 
   useEffect(() => setRows(leaderboard()), []);
 
-  return (
-    <ScrollArea className={cn("min-h-0 flex-1", className)}>
-      <ul className={cn("pr-2", dense && "px-1")}>
-        {rows.map((r, i) => {
-          const podium = PODIUM[i];
-          return (
-            <li
-              key={r.name + i}
-              data-you={r.you ? "true" : undefined}
+  const list = (
+    <ul className={cn("pr-2", dense && "px-1")}>
+      {rows.map((r, i) => {
+        const podium = PODIUM[i];
+        return (
+          <li
+            key={r.name + i}
+            data-you={r.you ? "true" : undefined}
+            className={cn(
+              "grid grid-cols-[1.25rem_1fr_2.75rem] items-baseline gap-x-1 border-b border-border/40 py-2 tabular-nums last:border-0",
+              "text-sm",
+              dense && "py-2.5",
+              r.you && "rounded-md bg-primary/10 px-1",
+            )}
+          >
+            <span
               className={cn(
-                "grid grid-cols-[1.25rem_1fr_2.75rem] items-baseline gap-x-1 border-b border-white/[0.04] py-2 tabular-nums last:border-0",
-                dense ? "text-xs" : "text-[11px]",
-                dense && "py-2.5",
-                r.you && "rounded-md bg-[#63b3ed]/10 px-1",
+                "text-right font-medium",
+                r.you ? "text-primary" : (podium ?? "text-foreground"),
               )}
             >
-              <span
-                className={cn(
-                  "text-right font-medium",
-                  r.you ? "text-[#63b3ed]" : (podium ?? "text-white/45"),
-                )}
-              >
-                {i + 1}
-              </span>
-              <span
-                className={cn(
-                  "min-w-0 truncate",
-                  r.you
-                    ? "font-semibold text-[#63b3ed]"
-                    : podium
-                      ? `font-semibold ${podium}`
-                      : "text-white/80",
-                )}
-              >
-                {r.name}
-              </span>
-              <span className={cn("text-right", r.you ? "text-[#63b3ed]/75" : "text-white/45")}>
-                {fmt(r.seconds)}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-    </ScrollArea>
+              {i + 1}
+            </span>
+            <span
+              className={cn(
+                "min-w-0 truncate",
+                r.you
+                  ? "font-semibold text-primary"
+                  : podium
+                    ? `font-semibold ${podium}`
+                    : "text-foreground",
+              )}
+            >
+              {r.name}
+            </span>
+            <span className={cn("text-right", r.you ? "text-primary" : "text-foreground")}>
+              {fmt(r.seconds)}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
   );
+
+  if (embedded) {
+    return <div className={className}>{list}</div>;
+  }
+
+  return <ScrollArea className={cn("min-h-0 flex-1", className)}>{list}</ScrollArea>;
 }

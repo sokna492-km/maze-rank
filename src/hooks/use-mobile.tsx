@@ -2,6 +2,7 @@ import * as React from "react";
 
 export const MOBILE_BREAKPOINT = 768;
 export const DESKTOP_BREAKPOINT = 1024;
+export const SHORT_VIEWPORT_MAX = 499;
 
 export type Breakpoint = "mobile" | "tablet" | "desktop";
 
@@ -34,4 +35,21 @@ export function useBreakpoint(): Breakpoint {
 
 export function useIsMobile() {
   return useBreakpoint() === "mobile";
+}
+
+/** True when viewport height is under 500px (landscape phones / short windows). */
+export function useShortViewport(): boolean {
+  const [short, setShort] = React.useState(() =>
+    typeof window !== "undefined" ? window.innerHeight <= SHORT_VIEWPORT_MAX : false,
+  );
+
+  React.useEffect(() => {
+    const mql = window.matchMedia(`(max-height: ${SHORT_VIEWPORT_MAX}px)`);
+    const onChange = () => setShort(mql.matches);
+    mql.addEventListener("change", onChange);
+    onChange();
+    return () => mql.removeEventListener("change", onChange);
+  }, []);
+
+  return short;
 }

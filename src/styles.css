@@ -5,13 +5,14 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system — dark neon theme only.
+ * Design system — light (:root) + dark neon (.dark).
  * All colors use oklch format.
  *
  * Breakpoints (Tailwind-aligned):
- *   mobile:  < 768px  (default)
- *   tablet:  768px – 1023px  (md)
- *   desktop: >= 1024px  (lg+)
+ *   mobile:  < 768px   (default) — H-scroll path + drawer LB; play D-pad
+ *   tablet:  768–1023  (md)      — fit-width path + drawer LB; play D-pad
+ *   desktop: >= 1024   (lg+)     — path + aside LB; play footer timer
+ * Short viewport: max-height 499px — play side D-pad (landscape phones)
  */
 
 @theme inline {
@@ -58,7 +59,72 @@
 }
 
 :root {
+  color-scheme: light;
   --radius: 0.75rem;
+  --background: oklch(0.985 0.01 250);
+  --foreground: oklch(0 0 0);
+  --card: oklch(1 0.005 250);
+  --card-foreground: oklch(0 0 0);
+  --popover: oklch(1 0.005 250);
+  --popover-foreground: oklch(0 0 0);
+  --primary: oklch(0.55 0.14 205);
+  --primary-foreground: oklch(0.99 0.01 220);
+  --secondary: oklch(0.94 0.02 250);
+  --secondary-foreground: oklch(0 0 0);
+  --muted: oklch(0.94 0.015 250);
+  --muted-foreground: oklch(0 0 0);
+  --accent: oklch(0.72 0.14 95);
+  --accent-foreground: oklch(0 0 0);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.99 0.01 240);
+  --border: oklch(0.86 0.02 250);
+  --input: oklch(0.86 0.02 250);
+  --ring: oklch(0.55 0.14 205);
+  --chart-1: oklch(0.55 0.14 205);
+  --chart-2: oklch(0.72 0.14 95);
+  --chart-3: oklch(0.58 0.16 320);
+  --chart-4: oklch(0.58 0.14 150);
+  --chart-5: oklch(0.58 0.18 25);
+  --sidebar: oklch(0.97 0.012 250);
+  --sidebar-foreground: oklch(0 0 0);
+  --sidebar-primary: oklch(0.55 0.14 205);
+  --sidebar-primary-foreground: oklch(0.99 0.01 220);
+  --sidebar-accent: oklch(0.94 0.02 250);
+  --sidebar-accent-foreground: oklch(0 0 0);
+  --sidebar-border: oklch(0.86 0.02 250);
+  --sidebar-ring: oklch(0.55 0.14 205);
+
+  --maze-line: oklch(0.55 0.14 205);
+  --maze-trail: oklch(0.72 0.14 95);
+  --player: oklch(0.35 0.06 220);
+  --goal: oklch(0.72 0.14 95);
+  --glow-primary: 0 0 10px color-mix(in oklab, var(--primary) 35%, transparent);
+  --glow-accent: 0 0 12px color-mix(in oklab, var(--accent) 35%, transparent);
+  --gradient-deep: radial-gradient(
+    120% 90% at 50% 0%,
+    oklch(0.97 0.02 245) 0%,
+    oklch(0.94 0.025 250) 55%,
+    oklch(0.91 0.03 255) 100%
+  );
+  --grid-line: color-mix(in oklab, var(--foreground) 6%, transparent);
+  --overlay-scrim: color-mix(in oklab, oklch(0.2 0.03 255) 45%, transparent);
+
+  --rank-1: oklch(0.58 0.12 55);
+  --rank-2: oklch(0.55 0.1 240);
+  --rank-3: oklch(0.58 0.14 85);
+  --rank-4: oklch(0.52 0.06 220);
+  --rank-5: oklch(0.55 0.12 175);
+  --rank-6: oklch(0.6 0.14 80);
+  --rank-7: oklch(0.55 0.16 310);
+  --rank-8: oklch(0.55 0.15 330);
+  --rank-9: oklch(0.58 0.16 20);
+  --rank-10: oklch(0.55 0.16 285);
+
+  --font-khmer: "Kantumruy Pro", ui-sans-serif, sans-serif;
+}
+
+.dark {
+  color-scheme: dark;
   --background: oklch(0.16 0.045 255);
   --foreground: oklch(0.97 0.02 220);
   --card: oklch(0.2 0.05 255);
@@ -70,7 +136,7 @@
   --secondary: oklch(0.26 0.05 255);
   --secondary-foreground: oklch(0.97 0.02 220);
   --muted: oklch(0.26 0.05 255);
-  --muted-foreground: oklch(0.78 0.04 240);
+  --muted-foreground: oklch(0.98 0.01 220);
   --accent: oklch(0.86 0.16 95);
   --accent-foreground: oklch(0.16 0.045 255);
   --destructive: oklch(0.62 0.22 25);
@@ -104,6 +170,8 @@
     oklch(0.13 0.04 258) 60%,
     oklch(0.11 0.035 260) 100%
   );
+  --grid-line: color-mix(in oklab, var(--foreground) 5%, transparent);
+  --overlay-scrim: color-mix(in oklab, oklch(0 0 0) 78%, transparent);
 
   --rank-1: oklch(0.72 0.12 55);
   --rank-2: oklch(0.78 0.08 240);
@@ -115,18 +183,16 @@
   --rank-8: oklch(0.8 0.16 330);
   --rank-9: oklch(0.86 0.16 20);
   --rank-10: oklch(0.82 0.18 285);
-
-  --font-khmer: "Kantumruy Pro", ui-sans-serif, sans-serif;
 }
 
 @layer base {
   html {
-    font-size: 100%;
+    font-size: 106.25%;
   }
 
   @media (min-width: 768px) {
     html {
-      font-size: 106.25%;
+      font-size: 112.5%;
     }
   }
 
@@ -209,11 +275,19 @@
 }
 
 @utility no-scroll-screen {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
   touch-action: none;
+  overscroll-behavior: none;
+}
+
+@utility app-screen {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
   overscroll-behavior: none;
 }
 
@@ -462,7 +536,34 @@
   }
 }
 
+@utility thin-bar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 28%, transparent) transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: color-mix(in oklab, var(--foreground) 28%, transparent);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--foreground) 45%, transparent);
+  }
+}
+
 .rank-label {
+  text-shadow: 0 1px 2px color-mix(in oklab, var(--background) 75%, transparent);
+}
+
+.dark .rank-label {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
@@ -472,15 +573,61 @@
   }
 }
 
+@keyframes path-flow {
+  to {
+    stroke-dashoffset: -48;
+  }
+}
+
 @keyframes pulse-orb {
   0%,
   100% {
-    opacity: 0.25;
-    transform: scale(0.96);
+    opacity: 0.35;
+    transform: scale(0.94);
   }
 
   50% {
-    opacity: 0.45;
-    transform: scale(1.04);
+    opacity: 0.7;
+    transform: scale(1.08);
   }
+}
+
+@keyframes orb-ring-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes orb-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@utility path-flow {
+  animation: path-flow 1.8s linear infinite;
+}
+
+@utility orb-glow-pulse {
+  animation: pulse-orb 2.4s ease-in-out infinite;
+}
+
+@utility orb-ring-pulse {
+  animation: orb-ring-pulse 2.2s ease-in-out infinite;
+}
+
+@utility orb-float {
+  animation: orb-float 3.2s ease-in-out infinite;
 }
