@@ -1,6 +1,6 @@
 # Neon Maze — Rank Climb
 
-A minimalist, full-screen maze game built with React and TanStack Start. Navigate glowing labyrinths and climb through ten Mobile Legends–inspired ranks — from Warrior to Mythical Immortal.
+A minimalist, full-screen maze game built with React and TanStack Start. Navigate glowing labyrinths and climb through ten ranked difficulty tiers — from Warrior to Mythical Immortal.
 
 ## Features
 
@@ -15,13 +15,14 @@ A minimalist, full-screen maze game built with React and TanStack Start. Navigat
 - [TanStack Start](https://tanstack.com/start) — Full-stack React framework with SSR
 - [TanStack Router](https://tanstack.com/router) — File-based routing
 - [Tailwind CSS v4](https://tailwindcss.com/) — Styling
-- [shadcn/ui](https://ui.shadcn.com/) — UI components
+- Lightweight UI primitives (drawer, scroll area)
 - [Vite](https://vite.dev/) — Build tooling
+- [Supabase](https://supabase.com/) — Auth (shared with KruMath)
 
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) 20+ (or use [nvm](https://github.com/nvm-sh/nvm))
-- npm, pnpm, or yarn
+- npm
 
 ## Getting started
 
@@ -36,7 +37,7 @@ Open the URL printed in the terminal (typically `http://localhost:5173/maze-rank
 
 ## KruMath.com
 
-Mounted at **https://krumath.com/maze-rank**. See [docs/integration.md](docs/integration.md) for Cloudflare deploy, auth gate, and the maintainer home-link checklist.
+Mounted at **https://krumath.com/maze-rank**. See [docs/integration.md](docs/integration.md) for Cloudflare deploy and auth gate details.
 
 ## Scripts
 
@@ -58,8 +59,9 @@ src/
 │   ├── __root.tsx   # Root layout and error boundaries
 │   ├── index.tsx    # Level selection
 │   └── live.$rank.tsx  # Gameplay screen
-├── components/      # Shared UI components
-├── lib/             # Game logic, maze generation, KruMath auth helpers
+├── components/      # Game UI (leaderboard, quiz, theme, rank icons)
+│   └── ui/          # Drawer and scroll-area primitives
+├── lib/             # Maze, quiz, progress, auth, theme helpers
 ├── server.ts        # SSR entry with error handling
 └── styles.css       # Global styles and Tailwind imports
 ```
@@ -87,4 +89,4 @@ Then add Cloudflare route `krumath.com/maze-rank*` → Worker `maze-rank`. Detai
 
 ## License
 
-Private — all rights reserved unless otherwise specified.
+[MIT](LICENSE)

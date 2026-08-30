@@ -15,10 +15,14 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
+*.tsbuildinfo
 
 # Environment & secrets
 .env
 .env.*
+.env.local
+.env.development
+.env.production
 !.env.example
 !.env*.example
 *.pem
@@ -39,11 +43,22 @@ service-account*.json
 # Local IDE / agent (debug logs, MCP config)
 .cursor/
 
+# Agent / personal workspace files (if ever copied into this repo)
+AGENTS.md
+SOUL.md
+USER.md
+MEMORY.md
+HEARTBEAT.md
+TOOLS.md
+BOOTSTRAP.md
+memory/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
